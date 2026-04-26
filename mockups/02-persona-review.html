@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Agent Debate — Persona Review</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e1e4e8; min-height: 100vh; }
+  .header { background: #161b22; border-bottom: 1px solid #30363d; padding: 16px 32px; display: flex; align-items: center; gap: 12px; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header .icon { font-size: 28px; }
+  .container { max-width: 900px; margin: 32px auto; padding: 0 24px; }
+  .topic-banner { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+  .topic-banner .label { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .topic-banner .topic { font-size: 18px; font-weight: 600; }
+  .topic-banner .theme { font-size: 14px; color: #8b949e; margin-top: 4px; }
+  .agents-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .agent-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; position: relative; }
+  .agent-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #fff; }
+  .agent-name { font-size: 16px; font-weight: 600; }
+  .agent-role { font-size: 12px; color: #8b949e; }
+  .agent-bg { font-size: 13px; color: #c9d1d9; line-height: 1.5; margin-bottom: 12px; }
+  .traits { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .trait { background: #21262d; border: 1px solid #30363d; border-radius: 12px; padding: 3px 10px; font-size: 11px; color: #8b949e; }
+  .emotions-mini { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 14px; }
+  .emo-item { text-align: center; }
+  .emo-item .emo-label { font-size: 9px; color: #8b949e; text-transform: uppercase; }
+  .emo-item .emo-bar { height: 4px; background: #21262d; border-radius: 2px; margin-top: 2px; overflow: hidden; }
+  .emo-item .emo-fill { height: 100%; border-radius: 2px; }
+  .model-select { margin-top: 8px; }
+  .model-select label { font-size: 11px; color: #8b949e; display: block; margin-bottom: 4px; }
+  .model-select select {
+    width: 100%; padding: 6px 10px; background: #0d1117; border: 1px solid #30363d;
+    border-radius: 6px; color: #e1e4e8; font-size: 12px; outline: none;
+  }
+  .model-select select:focus { border-color: #58a6ff; }
+  .actions { display: flex; gap: 12px; justify-content: flex-end; }
+  .btn { padding: 12px 32px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: background 0.2s; }
+  .btn-secondary { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; }
+  .btn-secondary:hover { background: #30363d; }
+  .btn-primary { background: #238636; color: #fff; }
+  .btn-primary:hover { background: #2ea043; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <span class="icon">🎭</span>
+    <h1>Multi-Agent Debate</h1>
+  </div>
+  <div class="container">
+    <div class="topic-banner">
+      <div class="label">Debate Topic</div>
+      <div class="topic">The future of nuclear energy in Europe</div>
+      <div class="theme">🎨 Theme: European heads of state from the 1960s</div>
+    </div>
+
+    <div class="agents-grid">
+      <!-- Agent 1 -->
+      <div class="agent-card">
+        <div class="agent-header">
+          <div class="avatar" style="background: #da3633;">CdG</div>
+          <div>
+            <div class="agent-name">Charles de Gaulle</div>
+            <div class="agent-role">Nuclear sovereignty advocate</div>
+          </div>
+        </div>
+        <div class="agent-bg">President of France. Architect of France's independent nuclear deterrent (Force de frappe). Believes nuclear power is essential for national sovereignty and energy independence.</div>
+        <div class="traits">
+          <span class="trait">Authoritative</span>
+          <span class="trait">Nationalistic</span>
+          <span class="trait">Visionary</span>
+          <span class="trait">Stubborn</span>
+        </div>
+        <div class="emotions-mini">
+          <div class="emo-item"><div class="emo-label">Confid.</div><div class="emo-bar"><div class="emo-fill" style="width:85%;background:#3fb950;"></div></div></div>
+          <div class="emo-item"><div class="emo-label">Enthus.</div><div class="emo-bar"><div class="emo-fill" style="width:70%;background:#58a6ff;"></div></div></div>
+          <div class="emo-item"><div class="emo-label">Anger</div><div class="emo-bar"><div class="emo-fill" style="width:20%;background:#da3633;"></div></div></div>
+          <div class="emo-item"><div class="emo-label">Withdr.</div><div class="emo-bar"><div class="emo-fill" style="width:5%;background:#8b949e;"></div></div></div>
+        </div>
+        <div class="model-select">
+          <label>LLM Model</label>
+          <select>
+            <option selected>Claude Opus (EU)</option>
+            <option>Claude Sonnet (EU)</option>
+            <option>Claude Haiku (EU)</option>
+            <option>Ollama — llama3</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Agent 2 -->
+      <div class="agent-card">
+        <div class="agent-header">
+          <div class="avatar" style="background: #1f6feb;">HW</div>
+          <div>
+            <div class="agent-name">Harold Wilson</div>
+            <div class="agent-role">Pragmatic moderniser</div>
+          </div>
+        </div>
+        <div class="agent-bg">Prime Minister of the United Kingdom. Champion of the "white heat of technology." Sees nuclear energy as part of scientific progress but wary of proliferation risks and costs.</div>
+        <div class="traits">
+          <span class="trait">Pragmatic</span>
+          <span class="trait">Witty</span>
+          <span class="trait">Cautious</span>
+          <span class="trait">Analytical</span>
+        </div>
+        <div class="emotions-mini">
+          <div class="emo-item"><div class="emo-label">Confid.</div><div class="emo-bar"><div class="emo-fill" style="width:65%;background:#3fb950;"></div></div></div>
+          <div class="emo-item"><div class="emo-label">Enthus.</div><div class="emo-bar"><div class="emo-fill" style="width:50%;background:#58a6ff;"></div></div></div>
+          <div class="emo-item"><div class="emo-label">Frust.</div><div class="emo-bar"><div class="emo-fill" style="width:30%;background:#d29922;"></div></div></div>
+          <div class="emo-item"><div class="emo-label">Withdr.</div><div class="emo-bar"><div class="emo-fill" style="width:10%;background:#8b949e;"></div></div></div>
+        </div>
+        <div class="model-select">
+          <label>LLM Model</label>
+          <select>
+            <option selected>Claude Opus (EU)</option>
+            <option>Claude Sonnet (EU)</option>
+            <option>Claude Haiku (EU)</option>
+            <option>Ollama — llama3</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Agent 3 -->
+      <div class="agent-card">
+        <div class="agent-header">
+          <div class="avatar" style="background: #a371f7;">WB</div>
+          <div>
+            <div class="agent-name">Willy Brandt</div>
+            <div class="agent-role">Peace-through-dialogue idealist</div>
+          </div>
+        </div>
+        <div class="agent-bg">Mayor of West Berlin, later Chancellor of West Germany. Architect of Ostpolitik. Deeply concerned about nuclear weapons but sees civilian nuclear energy as a path to European cooperation.</div>
+        <div class="traits">
+          <span class="trait">Empathetic</span>
+          <span class="trait">Diplomatic</span>
+          <span class="trait">Idealistic</span>
+          <span class="trait">Emotional</span>
+        </div>
+        <div class="emotions-mini">
+          <div class="emo-item"><div class="emo-label">Agree.</div><div class="emo-bar"><div class="emo-fill" style="width:60%;background:#3fb950;"></div></div></div>
+          <div class="emo-item"><div class="emo-label">Enthus.</div><div class="emo-bar"><div class="emo-fill" style="width:55%;background:#58a6ff;"></div></div></div>
+          <div class="emo-item"><div class="emo-label">Resent.</div><div class="emo-bar"><div class="emo-fill" style="width:15%;background:#f85149;"></div></div></div>
+          <div class="emo-item"><div class="emo-label">Withdr.</div><div class="emo-bar"><div class="emo-fill" style="width:8%;background:#8b949e;"></div></div></div>
+        </div>
+        <div class="model-select">
+          <label>LLM Model</label>
+          <select>
+            <option>Claude Opus (EU)</option>
+            <option selected>Claude Sonnet (EU)</option>
+            <option>Claude Haiku (EU)</option>
+            <option>Ollama — llama3</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Agent 4 -->
+      <div class="agent-card">
+        <div class="agent-header">
+          <div class="avatar" style="background: #d29922;">AM</div>
+          <div>
+            <div class="agent-name">Aldo Moro</div>
+            <div class="agent-role">Cautious consensus-builder</div>
+          </div>
+        </div>
+        <div class="agent-bg">Prime Minister of Italy. Master of political compromise and coalition-building. Sees nuclear energy through the lens of Italy's energy dependency and industrial development needs.</div>
+        <div class="traits">
+          <span class="trait">Patient</span>
+          <span class="trait">Conciliatory</span>
+          <span class="trait">Intellectual</span>
+          <span class="trait">Reserved</span>
+        </div>
+        <div class="emotions-mini">
+          <div class="emo-item"><div class="emo-label">Confid.</div><div class="emo-bar"><div class="emo-fill" style="width:45%;background:#3fb950;"></div></div></div>
+          <div class="emo-item"><div class="emo-label">Agree.</div><div class="emo-bar"><div class="emo-fill" style="width:55%;background:#58a6ff;"></div></div></div>
+          <div class="emo-item"><div class="emo-label">Frust.</div><div class="emo-bar"><div class="emo-fill" style="width:25%;background:#d29922;"></div></div></div>
+          <div class="emo-item"><div class="emo-label">Withdr.</div><div class="emo-bar"><div class="emo-fill" style="width:20%;background:#8b949e;"></div></div></div>
+        </div>
+        <div class="model-select">
+          <label>LLM Model</label>
+          <select>
+            <option selected>Claude Opus (EU)</option>
+            <option>Claude Sonnet (EU)</option>
+            <option>Claude Haiku (EU)</option>
+            <option>Ollama — llama3</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary">← Back to Config</button>
+      <button class="btn btn-primary">▶ Start Debate</button>
+    </div>
+  </div>
+</body>
+</html>

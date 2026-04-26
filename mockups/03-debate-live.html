@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Agent Debate — Live</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e1e4e8; min-height: 100vh; display: flex; flex-direction: column; }
+  .header { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header h1 { font-size: 18px; font-weight: 600; }
+  .header .icon { font-size: 24px; }
+  .header .topic { font-size: 13px; color: #8b949e; }
+  .controls { display: flex; gap: 8px; align-items: center; }
+  .controls .status { font-size: 12px; color: #3fb950; display: flex; align-items: center; gap: 4px; }
+  .controls .status::before { content: ''; width: 8px; height: 8px; background: #3fb950; border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .ctrl-btn { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #30363d; background: #21262d; color: #c9d1d9; transition: background 0.2s; }
+  .ctrl-btn:hover { background: #30363d; }
+  .ctrl-btn.stop { border-color: #da3633; color: #f85149; }
+  .ctrl-btn.stop:hover { background: #da3633; color: #fff; }
+
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* Timeline */
+  .timeline { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+  .msg { display: flex; gap: 12px; max-width: 720px; }
+  .msg .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; margin-top: 2px; }
+  .msg .bubble { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 12px 16px; flex: 1; }
+  .msg .bubble .name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .msg .bubble .text { font-size: 14px; line-height: 1.55; color: #c9d1d9; }
+  .msg .bubble .meta { font-size: 11px; color: #8b949e; margin-top: 6px; }
+
+  /* Interruption styling */
+  .msg.interruption .bubble { border-color: #da3633; border-left: 3px solid #da3633; background: #1c1214; }
+  .msg.interruption .bubble .tag { display: inline-block; background: #da3633; color: #fff; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Leader messages */
+  .msg.leader { max-width: 100%; }
+  .msg.leader .bubble { background: #0d1117; border-color: #30363d; border-left: 3px solid #58a6ff; }
+  .msg.leader .bubble .name { color: #58a6ff; }
+  .msg.leader .bubble .text { color: #8b949e; font-style: italic; }
+
+  /* Sidebar */
+  .sidebar { width: 280px; background: #161b22; border-left: 1px solid #30363d; overflow-y: auto; padding: 16px; flex-shrink: 0; }
+  .sidebar h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: #8b949e; margin-bottom: 16px; }
+  .agent-emo { margin-bottom: 20px; }
+  .agent-emo .agent-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .agent-emo .mini-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; }
+  .agent-emo .agent-label { font-size: 13px; font-weight: 500; }
+  .emo-bars { display: flex; flex-direction: column; gap: 5px; }
+  .emo-row { display: flex; align-items: center; gap: 6px; }
+  .emo-row .emo-name { font-size: 10px; color: #8b949e; width: 52px; text-align: right; }
+  .emo-row .bar-bg { flex: 1; height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; }
+  .emo-row .bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+  .emo-row .emo-val { font-size: 10px; color: #8b949e; width: 24px; }
+  .divider { border: none; border-top: 1px solid #21262d; margin: 16px 0; }
+
+  /* Typing indicator */
+  .typing { display: flex; gap: 12px; max-width: 720px; align-items: center; }
+  .typing .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .typing .dots { display: flex; gap: 4px; padding: 12px 16px; background: #161b22; border: 1px solid #30363d; border-radius: 12px; }
+  .typing .dot { width: 8px; height: 8px; background: #8b949e; border-radius: 50%; animation: bounce 1.4s infinite; }
+  .typing .dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <span class="icon">🎭</span>
+      <div>
+        <h1>The future of nuclear energy in Europe</h1>
+        <div class="topic">Theme: European heads of state from the 1960s · 4 agents · Turn 7</div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="status">Live</div>
+      <button class="ctrl-btn">⏸ Pause</button>
+      <button class="ctrl-btn stop">⏹ Stop</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="timeline">
+      <!-- Leader opening -->
+      <div class="msg leader">
+        <div class="avatar" style="background: #30363d;">🎙</div>
+        <div class="bubble">
+          <div class="name">Debate Leader</div>
+          <div class="text">Welcome to today's debate on the future of nuclear energy in Europe. We have four distinguished leaders joining us. Let us begin — General de Gaulle, would you open with your perspective?</div>
+        </div>
+      </div>
+
+      <!-- Statement 1 -->
+      <div class="msg">
+        <div class="avatar" style="background: #da3633;">CdG</div>
+        <div class="bubble">
+          <div class="name">Charles de Gaulle</div>
+          <div class="text">Nuclear energy is not merely a question of kilowatts. It is a question of sovereignty. France has demonstrated that a nation which masters the atom masters its own destiny. Europe must not depend on foreign oil or foreign protection. The atom is our independence.</div>
+          <div class="meta">Turn 1 · Confidence: 0.85 · Enthusiasm: 0.72</div>
+        </div>
+      </div>
+
+      <!-- Statement 2 -->
+      <div class="msg">
+        <div class="avatar" style="background: #1f6feb;">HW</div>
+        <div class="bubble">
+          <div class="name">Harold Wilson</div>
+          <div class="text">With respect, General, sovereignty is all well and good, but the British taxpayer wants to know: at what cost? Our experience with Magnox reactors has shown that nuclear promises often exceed nuclear budgets. The white heat of technology must also be economically sensible.</div>
+          <div class="meta">Turn 2 · Confidence: 0.68 · Frustration: 0.35</div>
+        </div>
+      </div>
+
+      <!-- Statement 3 -->
+      <div class="msg">
+        <div class="avatar" style="background: #a371f7;">WB</div>
+        <div class="bubble">
+          <div class="name">Willy Brandt</div>
+          <div class="text">Perhaps we are looking at this too narrowly. Nuclear energy could be a bridge — not just for electricity, but for European cooperation. If France, Britain, Germany, and Italy build together rather than separately, we reduce costs and build trust. Is that not what Europe needs most?</div>
+          <div class="meta">Turn 3 · Agreement: 0.65 · Enthusiasm: 0.60</div>
+        </div>
+      </div>
+
+      <!-- Interruption -->
+      <div class="msg interruption">
+        <div class="avatar" style="background: #da3633;">CdG</div>
+        <div class="bubble">
+          <div class="tag">⚡ Interruption</div>
+          <div class="name">Charles de Gaulle</div>
+          <div class="text">Cooperation? You mean submission to a committee! France will not hand its nuclear programme to Brussels bureaucrats!</div>
+          <div class="meta">Interruption · Anger: 0.82 · Confidence: 0.90</div>
+        </div>
+      </div>
+
+      <!-- Leader prompt for silent agent -->
+      <div class="msg leader">
+        <div class="avatar" style="background: #30363d;">🎙</div>
+        <div class="bubble">
+          <div class="name">Debate Leader</div>
+          <div class="text">Signor Moro, you've been quiet. Italy faces significant energy challenges — what is your view on what has been said?</div>
+        </div>
+      </div>
+
+      <!-- Statement from prompted silent agent -->
+      <div class="msg">
+        <div class="avatar" style="background: #d29922;">AM</div>
+        <div class="bubble">
+          <div class="name">Aldo Moro</div>
+          <div class="text">I have been listening carefully. Italy imports nearly all its energy. For us, this is not an abstract debate about sovereignty or cooperation — it is survival. I find myself agreeing with Herr Brandt that a shared European approach could lower the enormous costs that concern Mr Wilson, while still respecting the national pride that the General holds dear. But we must be honest: the safety question remains unanswered.</div>
+          <div class="meta">Turn 6 · Agreement: 0.58 · Frustration: 0.30 · Was silent for 3 turns</div>
+        </div>
+      </div>
+
+      <!-- Typing indicator -->
+      <div class="typing">
+        <div class="avatar" style="background: #1f6feb;">HW</div>
+        <div class="dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Emotional State Sidebar -->
+    <div class="sidebar">
+      <h3>Emotional States</h3>
+
+      <div class="agent-emo">
+        <div class="agent-row">
+          <div class="mini-avatar" style="background: #da3633;">CdG</div>
+          <div class="agent-label">de Gaulle</div>
+        </div>
+        <div class="emo-bars">
+          <div class="emo-row"><span class="emo-name">Anger</span><div class="bar-bg"><div class="bar-fill" style="width:72%;background:#f85149;"></div></div><span class="emo-val">.72</span></div>
+          <div class="emo-row"><span class="emo-name">Confid.</span><div class="bar-bg"><div class="bar-fill" style="width:90%;background:#3fb950;"></div></div><span class="emo-val">.90</span></div>
+          <div class="emo-row"><span class="emo-name">Enthus.</span><div class="bar-bg"><div class="bar-fill" style="width:55%;background:#58a6ff;"></div></div><span class="emo-val">.55</span></div>
+          <div class="emo-row"><span class="emo-name">Frust.</span><div class="bar-bg"><div class="bar-fill" style="width:45%;background:#d29922;"></div></div><span class="emo-val">.45</span></div>
+          <div class="emo-row"><span class="emo-name">Agree.</span><div class="bar-bg"><div class="bar-fill" style="width:12%;background:#3fb950;"></div></div><span class="emo-val">.12</span></div>
+          <div class="emo-row"><span class="emo-name">Resent.</span><div class="bar-bg"><div class="bar-fill" style="width:38%;background:#f85149;"></div></div><span class="emo-val">.38</span></div>
+          <div class="emo-row"><span class="emo-name">Withdr.</span><div class="bar-bg"><div class="bar-fill" style="width:5%;background:#8b949e;"></div></div><span class="emo-val">.05</span></div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="agent-emo">
+        <div class="agent-row">
+          <div class="mini-avatar" style="background: #1f6feb;">HW</div>
+          <div class="agent-label">Wilson</div>
+        </div>
+        <div class="emo-bars">
+          <div class="emo-row"><span class="emo-name">Anger</span><div class="bar-bg"><div class="bar-fill" style="width:18%;background:#f85149;"></div></div><span class="emo-val">.18</span></div>
+          <div class="emo-row"><span class="emo-name">Confid.</span><div class="bar-bg"><div class="bar-fill" style="width:72%;background:#3fb950;"></div></div><span class="emo-val">.72</span></div>
+          <div class="emo-row"><span class="emo-name">Enthus.</span><div class="bar-bg"><div class="bar-fill" style="width:40%;background:#58a6ff;"></div></div><span class="emo-val">.40</span></div>
+          <div class="emo-row"><span class="emo-name">Frust.</span><div class="bar-bg"><div class="bar-fill" style="width:48%;background:#d29922;"></div></div><span class="emo-val">.48</span></div>
+          <div class="emo-row"><span class="emo-name">Agree.</span><div class="bar-bg"><div class="bar-fill" style="width:35%;background:#3fb950;"></div></div><span class="emo-val">.35</span></div>
+          <div class="emo-row"><span class="emo-name">Resent.</span><div class="bar-bg"><div class="bar-fill" style="width:22%;background:#f85149;"></div></div><span class="emo-val">.22</span></div>
+          <div class="emo-row"><span class="emo-name">Withdr.</span><div class="bar-bg"><div class="bar-fill" style="width:8%;background:#8b949e;"></div></div><span class="emo-val">.08</span></div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="agent-emo">
+        <div class="agent-row">
+          <div class="mini-avatar" style="background: #a371f7;">WB</div>
+          <div class="agent-label">Brandt</div>
+        </div>
+        <div class="emo-bars">
+          <div class="emo-row"><span class="emo-name">Anger</span><div class="bar-bg"><div class="bar-fill" style="width:10%;background:#f85149;"></div></div><span class="emo-val">.10</span></div>
+          <div class="emo-row"><span class="emo-name">Confid.</span><div class="bar-bg"><div class="bar-fill" style="width:55%;background:#3fb950;"></div></div><span class="emo-val">.55</span></div>
+          <div class="emo-row"><span class="emo-name">Enthus.</span><div class="bar-bg"><div class="bar-fill" style="width:62%;background:#58a6ff;"></div></div><span class="emo-val">.62</span></div>
+          <div class="emo-row"><span class="emo-name">Frust.</span><div class="bar-bg"><div class="bar-fill" style="width:28%;background:#d29922;"></div></div><span class="emo-val">.28</span></div>
+          <div class="emo-row"><span class="emo-name">Agree.</span><div class="bar-bg"><div class="bar-fill" style="width:68%;background:#3fb950;"></div></div><span class="emo-val">.68</span></div>
+          <div class="emo-row"><span class="emo-name">Resent.</span><div class="bar-bg"><div class="bar-fill" style="width:20%;background:#f85149;"></div></div><span class="emo-val">.20</span></div>
+          <div class="emo-row"><span class="emo-name">Withdr.</span><div class="bar-bg"><div class="bar-fill" style="width:5%;background:#8b949e;"></div></div><span class="emo-val">.05</span></div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="agent-emo">
+        <div class="agent-row">
+          <div class="mini-avatar" style="background: #d29922;">AM</div>
+          <div class="agent-label">Moro</div>
+        </div>
+        <div class="emo-bars">
+          <div class="emo-row"><span class="emo-name">Anger</span><div class="bar-bg"><div class="bar-fill" style="width:8%;background:#f85149;"></div></div><span class="emo-val">.08</span></div>
+          <div class="emo-row"><span class="emo-name">Confid.</span><div class="bar-bg"><div class="bar-fill" style="width:50%;background:#3fb950;"></div></div><span class="emo-val">.50</span></div>
+          <div class="emo-row"><span class="emo-name">Enthus.</span><div class="bar-bg"><div class="bar-fill" style="width:35%;background:#58a6ff;"></div></div><span class="emo-val">.35</span></div>
+          <div class="emo-row"><span class="emo-name">Frust.</span><div class="bar-bg"><div class="bar-fill" style="width:32%;background:#d29922;"></div></div><span class="emo-val">.32</span></div>
+          <div class="emo-row"><span class="emo-name">Agree.</span><div class="bar-bg"><div class="bar-fill" style="width:58%;background:#3fb950;"></div></div><span class="emo-val">.58</span></div>
+          <div class="emo-row"><span class="emo-name">Resent.</span><div class="bar-bg"><div class="bar-fill" style="width:12%;background:#f85149;"></div></div><span class="emo-val">.12</span></div>
+          <div class="emo-row"><span class="emo-name">Withdr.</span><div class="bar-bg"><div class="bar-fill" style="width:15%;background:#8b949e;"></div></div><span class="emo-val">.15</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

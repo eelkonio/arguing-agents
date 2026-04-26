@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+coverage.xml
+*.cover
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Built static files (regenerated from frontend/)
+static/
+
+# SQLite database
+data/*.db
+
+# Environment / secrets
+aws-access.sh
+.env
+.env.*
+
+# Alliander-specific (not needed for public repo)
+skills/
+SKILLS.md
+chart/
+catalog-info.yaml
+sonar-project.properties
+infra/
+
+# Personal / project-specific files
+past-debates/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Kiro
+.kiro/
+
+# TypeScript build info
+*.tsbuildinfo

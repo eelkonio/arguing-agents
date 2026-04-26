@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Agent Debate — Configuration</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e1e4e8; min-height: 100vh; }
+  .header { background: #161b22; border-bottom: 1px solid #30363d; padding: 16px 32px; display: flex; align-items: center; gap: 12px; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header .icon { font-size: 28px; }
+  .container { max-width: 640px; margin: 48px auto; padding: 0 24px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 32px; }
+  .card h2 { font-size: 24px; margin-bottom: 8px; }
+  .card .subtitle { color: #8b949e; margin-bottom: 28px; font-size: 14px; }
+  .form-group { margin-bottom: 24px; }
+  .form-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: #c9d1d9; }
+  .form-group .hint { font-size: 12px; color: #8b949e; margin-top: 4px; }
+  input[type="text"], input[type="number"], select {
+    width: 100%; padding: 10px 14px; background: #0d1117; border: 1px solid #30363d;
+    border-radius: 8px; color: #e1e4e8; font-size: 14px; outline: none; transition: border-color 0.2s;
+  }
+  input:focus, select:focus { border-color: #58a6ff; }
+  .backend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .backend-item { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 14px; }
+  .backend-item .label { font-size: 12px; color: #8b949e; margin-bottom: 6px; }
+  .backend-item select { margin-top: 4px; }
+  .btn-primary {
+    width: 100%; padding: 12px; background: #238636; border: none; border-radius: 8px;
+    color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-primary:hover { background: #2ea043; }
+  .divider { border: none; border-top: 1px solid #30363d; margin: 24px 0; }
+  .examples { font-size: 13px; color: #8b949e; line-height: 1.6; }
+  .examples strong { color: #c9d1d9; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <span class="icon">🎭</span>
+    <h1>Multi-Agent Debate</h1>
+  </div>
+  <div class="container">
+    <div class="card">
+      <h2>New Debate</h2>
+      <p class="subtitle">Set up a topic, choose your agents, and let them argue it out.</p>
+
+      <div class="form-group">
+        <label>Debate Topic</label>
+        <input type="text" placeholder="e.g., Should AI replace human artists?" value="The future of nuclear energy in Europe">
+      </div>
+
+      <div class="form-group">
+        <label>Number of Agents</label>
+        <input type="number" value="4" min="2" max="10">
+        <div class="hint">Between 2 and 10 agents</div>
+      </div>
+
+      <div class="form-group">
+        <label>Agent Theme <span style="color:#8b949e">(optional)</span></label>
+        <input type="text" placeholder="e.g., Greek gods, A-team members, farm yard cattle" value="European heads of state from the 1960s">
+        <div class="hint examples" style="margin-top: 8px;">
+          <strong>Examples:</strong> "Greek gods" · "members of the A-team" · "farm yard cattle" · "Renaissance painters"
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="form-group">
+        <label>Service Backends</label>
+        <div class="backend-grid">
+          <div class="backend-item">
+            <div class="label">Debate Creator</div>
+            <select>
+              <option>Claude Opus (EU)</option>
+              <option>Claude Sonnet (EU)</option>
+              <option>Claude Haiku (EU)</option>
+              <option>Ollama — llama3</option>
+            </select>
+          </div>
+          <div class="backend-item">
+            <div class="label">Debate Leader</div>
+            <select>
+              <option>Claude Sonnet (EU)</option>
+              <option selected>Claude Sonnet (EU)</option>
+              <option>Claude Haiku (EU)</option>
+              <option>Ollama — llama3</option>
+            </select>
+          </div>
+          <div class="backend-item">
+            <div class="label">Psycho Pusher</div>
+            <select>
+              <option>Claude Opus (EU)</option>
+              <option>Claude Sonnet (EU)</option>
+              <option selected>Claude Haiku (EU)</option>
+              <option>Ollama — llama3</option>
+            </select>
+          </div>
+          <div class="backend-item">
+            <div class="label">Default Agent Model</div>
+            <select>
+              <option selected>Claude Opus (EU)</option>
+              <option>Claude Sonnet (EU)</option>
+              <option>Claude Haiku (EU)</option>
+              <option>Ollama — llama3</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary">Generate Agents</button>
+    </div>
+  </div>
+</body>
+</html>

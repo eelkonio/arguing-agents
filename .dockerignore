@@ -1,0 +1,16 @@
+.venv
+.git
+.github
+__pycache__
+*.pyc
+node_modules
+frontend/node_modules
+frontend/dist
+mockups
+tests
+.kiro
+*.md
+!README.md
+.pre-commit-config.yaml
+.ruff_cache
+.mypy_cache

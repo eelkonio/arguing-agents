@@ -1,0 +1,20 @@
+#!/bin/bash
+# Example AWS credentials for Bedrock access.
+# Copy this file to aws-access.sh and fill in your credentials.
+#
+# You can get temporary credentials from:
+#   - AWS SSO: aws sso login --profile your-profile
+#   - STS: aws sts get-session-token
+#   - IAM console: Create access key (not recommended for production)
+#
+# The credentials need permissions for:
+#   - bedrock:Converse
+#   - bedrock:InvokeModel
+#   - bedrock:InvokeModelWithResponseStream
+#   - bedrock:ListFoundationModels
+#
+# Region should be eu-central-1 for EU inference profiles.
+
+export AWS_ACCESS_KEY_ID="your-access-key-id"
+export AWS_SECRET_ACCESS_KEY="your-secret-access-key"
+export AWS_SESSION_TOKEN="your-session-token"  # Only needed for temporary credentials

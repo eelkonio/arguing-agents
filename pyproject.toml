@@ -1,0 +1,38 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "multi-agent-debate"
+version = "0.1.0"
+description = "A web-based multi-agent debate system with AI-driven agents, dynamic emotional states, and real-time streaming"
+authors = ["Alliander <info@alliander.com>"]
+readme = "README.md"
+license = "GNU"
+packages = [{ include = "multi_agent_debate", from = "src" }]
+
+[tool.poetry.scripts]
+run_application = "multi_agent_debate.entrypoint:run_application"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+fastapi = "^0.115.0"
+uvicorn = "^0.34.0"
+pydantic = "^2.10.0"
+pydantic-settings = "^2.7.0"
+httpx = "^0.28.0"
+sse-starlette = "^2.2.0"
+aiosqlite = "^0.22.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+pytest-asyncio = "^0.25.0"
+pytest-cov = "^6.0.0"
+hypothesis = "^6.120.0"
+ruff = "^0.8.0"
+mypy = "^1.14.0"
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
