@@ -18,6 +18,7 @@ from multi_agent_debate.api.health import router as health_router
 from multi_agent_debate.api.sessions import router as sessions_router
 from multi_agent_debate.api.stream import EventStreamManager
 from multi_agent_debate.api.stream import router as stream_router
+from multi_agent_debate.api.audio import router as audio_router
 from multi_agent_debate.config import Settings, get_settings
 from multi_agent_debate.debate.session import SessionManager
 from multi_agent_debate.llm.adapters.base import LLMAdapter
@@ -31,6 +32,10 @@ from multi_agent_debate.debate.loop import AdapterFactory
 from multi_agent_debate.logging import setup_logging
 from multi_agent_debate.models.config import LLMBackendConfig, LLMProvider
 from multi_agent_debate.storage import DebateStore
+from multi_agent_debate.tts.audio_generator import AudioGenerator
+from multi_agent_debate.tts.kokoro_adapter import KokoroAdapter
+from multi_agent_debate.tts.polly_adapter import PollyAdapter
+from multi_agent_debate.tts.voice_assigner import VoiceAssigner
 
 logger = logging.getLogger(__name__)
 
@@ -124,11 +129,29 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         "pusher": pusher_service,
     }
 
+    # --- Audio generator ---
+    tts_backend = settings.tts_backend
+    polly_adapter = PollyAdapter(region=settings.default_bedrock_region) if tts_backend == "polly" else None
+    kokoro_adapter = KokoroAdapter() if tts_backend == "kokoro" else None
+    voice_assigner = VoiceAssigner(backend=tts_backend)
+    audio_generator = AudioGenerator(
+        voice_assigner=voice_assigner,
+        store=debate_store,
+        output_dir=settings.audio_output_dir,
+        polly_adapter=polly_adapter,
+        kokoro_adapter=kokoro_adapter,
+        tts_backend=tts_backend,
+    )
+    app.state.polly_adapter = polly_adapter
+    app.state.kokoro_adapter = kokoro_adapter
+    app.state.audio_generator = audio_generator
+
     # --- Register routers ---
     app.include_router(sessions_router)
     app.include_router(stream_router)
     app.include_router(health_router)
     app.include_router(debates_router)
+    app.include_router(audio_router)
 
     # --- CORS ---
     app.add_middleware(

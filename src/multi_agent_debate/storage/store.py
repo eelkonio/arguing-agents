@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import pathlib
+import time
 
 import aiosqlite
 
@@ -25,11 +26,18 @@ class DebateStore:
         self._db_path = db_path
 
     async def initialize(self) -> None:
-        """Create tables if they don't exist."""
+        """Create tables if they don't exist and clean up stale audio jobs."""
         pathlib.Path(self._db_path).parent.mkdir(parents=True, exist_ok=True)
         try:
             async with aiosqlite.connect(self._db_path) as db:
                 await db.executescript(SCHEMA_SQL)
+                # Reset any audio jobs stuck in pending/generating from a previous crash
+                cursor = await db.execute(
+                    "UPDATE audio_jobs SET status = 'failed', error_message = 'Server restarted during generation' "
+                    "WHERE status IN ('pending', 'generating')"
+                )
+                if cursor.rowcount and cursor.rowcount > 0:
+                    logger.info("Reset %d stale audio jobs from previous run", cursor.rowcount)
                 await db.commit()
             logger.info("DebateStore initialized at '%s'", self._db_path)
         except Exception:
@@ -316,3 +324,111 @@ class DebateStore:
         except Exception:
             logger.exception("Failed to get timeline for session '%s'", session_id)
             return []
+
+    # ------------------------------------------------------------------
+    # Audio job helpers
+    # ------------------------------------------------------------------
+
+    async def create_audio_job(self, session_id: str) -> dict | None:
+        """Create or reset an audio job record. Returns the job dict or None on failure."""
+        try:
+            now = time.time()
+            async with aiosqlite.connect(self._db_path) as db:
+                await db.execute(
+                    """
+                    INSERT INTO audio_jobs (session_id, status, progress, audio_path, error_message, created_at, completed_at)
+                    VALUES (?, 'pending', 0, NULL, NULL, ?, NULL)
+                    ON CONFLICT(session_id) DO UPDATE SET
+                        status = 'pending',
+                        progress = 0,
+                        audio_path = NULL,
+                        error_message = NULL,
+                        created_at = excluded.created_at,
+                        completed_at = NULL
+                    """,
+                    (session_id, now),
+                )
+                await db.commit()
+            return {
+                "session_id": session_id,
+                "status": "pending",
+                "progress": 0,
+                "audio_path": None,
+                "error_message": None,
+                "created_at": now,
+                "completed_at": None,
+            }
+        except Exception:
+            logger.exception("Failed to create audio job for session '%s'", session_id)
+            return None
+
+    async def update_audio_status(
+        self,
+        session_id: str,
+        status: str,
+        error_message: str | None = None,
+    ) -> None:
+        """Update the status of an audio job."""
+        try:
+            completed_at = time.time() if status in ("completed", "failed") else None
+            async with aiosqlite.connect(self._db_path) as db:
+                await db.execute(
+                    """
+                    UPDATE audio_jobs
+                    SET status = ?, error_message = ?, completed_at = ?
+                    WHERE session_id = ?
+                    """,
+                    (status, error_message, completed_at, session_id),
+                )
+                await db.commit()
+        except Exception:
+            logger.exception("Failed to update audio status for session '%s'", session_id)
+
+    async def update_audio_progress(self, session_id: str, progress: int) -> None:
+        """Update the progress percentage of an audio job."""
+        try:
+            async with aiosqlite.connect(self._db_path) as db:
+                await db.execute(
+                    "UPDATE audio_jobs SET progress = ? WHERE session_id = ?",
+                    (progress, session_id),
+                )
+                await db.commit()
+        except Exception:
+            logger.exception("Failed to update audio progress for session '%s'", session_id)
+
+    async def get_audio_job(self, session_id: str) -> dict | None:
+        """Return the audio job for a session, or None if not found."""
+        try:
+            async with aiosqlite.connect(self._db_path) as db:
+                db.row_factory = aiosqlite.Row
+                cursor = await db.execute(
+                    "SELECT * FROM audio_jobs WHERE session_id = ?",
+                    (session_id,),
+                )
+                row = await cursor.fetchone()
+                if row is None:
+                    return None
+                return {
+                    "session_id": row["session_id"],
+                    "status": row["status"],
+                    "progress": row["progress"],
+                    "audio_path": row["audio_path"],
+                    "error_message": row["error_message"],
+                    "created_at": row["created_at"],
+                    "completed_at": row["completed_at"],
+                }
+        except Exception:
+            logger.exception("Failed to get audio job for session '%s'", session_id)
+            return None
+
+    async def set_audio_path(self, session_id: str, audio_path: str) -> None:
+        """Set the audio file path for a completed audio job."""
+        try:
+            async with aiosqlite.connect(self._db_path) as db:
+                await db.execute(
+                    "UPDATE audio_jobs SET audio_path = ? WHERE session_id = ?",
+                    (audio_path, session_id),
+                )
+                await db.commit()
+        except Exception:
+            logger.exception("Failed to set audio path for session '%s'", session_id)

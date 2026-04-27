@@ -55,6 +55,7 @@ Topic: "{topic}"{theme_instruction}
 
 Each persona must have:
 - "name": A unique, memorable name
+- "gender": Either "male" or "female"
 - "background": A brief background description (1-2 sentences)
 - "expertise": Their area of expertise relevant to the topic
 - "character_traits": A list of 2-4 personality traits (e.g., "confrontational", "empathetic", "analytical")
@@ -114,6 +115,7 @@ def _enrich_persona(raw: dict[str, object]) -> AgentPersona:
         character_traits=[str(t) for t in traits],
         initial_emotional_state=emotional_state,
         avatar_color=random.choice(_AVATAR_COLORS),
+        gender=str(raw.get("gender", "unknown")).lower(),
     )
 
 

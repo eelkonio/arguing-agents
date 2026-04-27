@@ -26,7 +26,9 @@ class Settings(BaseSettings):
     max_output_tokens: int = 128000
     database_path: str = "./data/debates.db"
     topic_drift_check_interval: int = 5
-
+    audio_output_dir: str = "./data/audio"
+    bark_device: str = "auto"  # "auto", "cpu", "cuda", or "mps"
+    tts_backend: str = "polly"  # "polly" or "kokoro"
     model_config = {"env_prefix": "DEBATE_"}
 
 

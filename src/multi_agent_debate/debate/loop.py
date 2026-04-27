@@ -368,20 +368,34 @@ class DebateLoop:
                     yield event
                 return
 
-            # --- Check max turns BEFORE generating next statement ---
+            # --- ABSOLUTE HARD CUTOFF — cannot be bypassed ---
             max_turns = session.config.max_turns
-            if max_turns is not None and session.status == DebateStatus.RUNNING:
+            if max_turns is not None and session.turn_count >= max_turns + max_turns // 5:
+                # At 120% of max_turns, force-end immediately without closing sequence
+                logger.error(
+                    "ABSOLUTE CUTOFF: turn_count=%d exceeded 120%% of max_turns=%d — force-ending debate",
+                    session.turn_count,
+                    max_turns,
+                )
+                break
+
+            # --- Check max turns BEFORE generating next statement ---
+            if max_turns is not None:
                 if _force_close(session.turn_count, max_turns):
-                    # Hard cutoff — force closing immediately, no LLM call needed
+                    # Hard cutoff at 110% — force closing sequence
                     logger.warning(
                         "FORCE CLOSE: turn_count=%d >= ceil(1.1 * %d)=%d — initiating closing sequence",
                         session.turn_count,
                         max_turns,
                         math.ceil(1.1 * max_turns),
                     )
-                    async for event in self._run_closing_sequence():
-                        yield event
-                    return
+                    try:
+                        async for event in self._run_closing_sequence():
+                            yield event
+                        return
+                    except Exception:
+                        logger.exception("Closing sequence failed at force close, ending debate")
+                        break
 
                 if _in_leniency_window(session.turn_count, max_turns):
                     # In leniency window — ask leader if we should close

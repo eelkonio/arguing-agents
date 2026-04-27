@@ -21,6 +21,7 @@ A web-based system where AI agents debate topics in real time. You enter a topic
 - **Graceful closing** — configurable max turns with ±10% leniency, closing arguments from each agent
 - **Profanity handling** — agents use "[CENSURED]" for profanity, based on their character
 - **Debate history** — all debates stored in SQLite, browsable and replayable
+- **Audio debates** — generate MP3 audio of completed debates with distinct voices per agent (Polly or Kokoro)
 - **Print view** — clean printable version of any debate
 - **Multiple LLM backends** — Claude (via AWS Bedrock) or local models (via Ollama)
 - **Per-agent model selection** — assign different models to different agents
@@ -30,10 +31,12 @@ A web-based system where AI agents debate topics in real time. You enter a topic
 
 ### Prerequisites
 
-- Python 3.13+
+- Python 3.12+
 - Node.js 20+
 - [Poetry](https://python-poetry.org/docs/#installation)
-- AWS CLI v2 (for Bedrock) or [Ollama](https://ollama.ai/) (for local models)
+- AWS CLI v2 (for Bedrock and Polly TTS) or [Ollama](https://ollama.ai/) (for local models)
+- `ffmpeg` (for audio MP3 export): `brew install ffmpeg`
+- `espeak-ng` (for Kokoro TTS): `brew install espeak-ng`
 
 ### Setup
 
@@ -113,6 +116,40 @@ Environment variables (prefix `DEBATE_`):
 | `DEBATE_INTERRUPTION_THRESHOLD` | `0.8` | Emotional threshold for interruptions |
 | `DEBATE_SILENT_TURN_THRESHOLD` | `3` | Turns before prompting a silent agent |
 | `DEBATE_TOPIC_DRIFT_CHECK_INTERVAL` | `5` | Check for topic drift every N turns |
+| `DEBATE_TTS_BACKEND` | `polly` | TTS engine: `polly` (AWS cloud) or `kokoro` (local, free) |
+| `DEBATE_AUDIO_OUTPUT_DIR` | `./data/audio` | Directory for generated MP3 files |
+
+## Audio Debate Generation
+
+After a debate ends, you can generate an MP3 audio version from the debate history view. The audio includes:
+
+1. **Introduction** — the debate leader announces the topic and introduces each agent
+2. **Voice identification** — each agent responds to their introduction so you learn their voice
+3. **Full debate** — the leader announces each speaker by name before their statement
+
+### TTS Backend: Polly (default)
+
+Uses AWS Polly's generative engine. Fast (~1-2 seconds per statement), high quality, costs ~$0.30 per debate.
+
+```bash
+# Polly is the default — just needs AWS credentials
+source aws-access.sh && poetry run python -m multi_agent_debate.entrypoint
+```
+
+Voices: Matthew, Stephen, Gregory, Kevin (male) / Ruth, Danielle, Joanna, Amy (female). Narrator: Matthew.
+
+### TTS Backend: Kokoro (free, local)
+
+Uses Kokoro-82M, an open-source 82M parameter TTS model. Runs locally, no API costs, Apache 2.0 licensed. Slower than Polly but free.
+
+```bash
+# Switch to Kokoro
+DEBATE_TTS_BACKEND=kokoro poetry run python -m multi_agent_debate.entrypoint
+```
+
+Requires `espeak-ng`: `brew install espeak-ng` (Mac) or `apt install espeak-ng` (Linux).
+
+Voices: 8 male American English voices, 11 female American English voices. Narrator: female (`af_heart`), freeing up male voices for debaters. When there are more agents than available voices, voices are reused with speed variations (0.9x, 1.1x, etc.) to sound distinct.
 
 ## Development
 

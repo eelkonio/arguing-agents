@@ -270,3 +270,22 @@ export interface DebateDetail {
   };
   timeline: DebateTimelineEntry[];
 }
+
+/** Audio job status type */
+export type AudioJobStatus =
+  | "none"
+  | "pending"
+  | "generating"
+  | "completed"
+  | "failed";
+
+/** Audio job from the backend */
+export interface AudioJob {
+  session_id: string;
+  status: AudioJobStatus;
+  progress: number; // 0-100
+  audio_path: string | null;
+  error_message: string | null;
+  created_at: number | null;
+  completed_at: number | null;
+}

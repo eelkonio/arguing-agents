@@ -35,3 +35,8 @@ def get_services(app: FastAPI) -> dict[str, Any]:
 def get_debate_store(app: FastAPI) -> "DebateStore":
     """Retrieve the :class:`DebateStore` from ``app.state``."""
     return app.state.debate_store  # type: ignore[no-any-return]
+
+
+def get_audio_generator(app: FastAPI) -> Any:
+    """Retrieve the :class:`AudioGenerator` from ``app.state``."""
+    return app.state.audio_generator

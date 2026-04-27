@@ -44,4 +44,14 @@ CREATE TABLE IF NOT EXISTS leader_events (
     agent_name TEXT,
     timestamp REAL NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS audio_jobs (
+    session_id TEXT PRIMARY KEY REFERENCES sessions(id),
+    status TEXT NOT NULL DEFAULT 'pending',
+    progress INTEGER NOT NULL DEFAULT 0,
+    audio_path TEXT,
+    error_message TEXT,
+    created_at REAL,
+    completed_at REAL
+);
 """

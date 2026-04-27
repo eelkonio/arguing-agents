@@ -21,6 +21,7 @@ class AgentPersona(BaseModel):
     character_traits: list[str]
     initial_emotional_state: EmotionalState
     avatar_color: str
+    gender: str = "unknown"  # "male", "female", or "unknown"
 
 
 class AgentState(BaseModel):

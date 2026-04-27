@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { DebateDetail, DebateTimelineEntry, EmotionalState } from "../types";
+import type { AudioJob, DebateDetail, DebateTimelineEntry, EmotionalState } from "../types";
 import { EMOTION_LABELS, getInitials } from "../types";
 
 interface DebateReplayProps {
@@ -11,6 +11,7 @@ export function DebateReplay({ debateId, onBack }: DebateReplayProps) {
   const [detail, setDetail] = useState<DebateDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [audioJob, setAudioJob] = useState<AudioJob | null>(null);
 
   const fetchDetail = useCallback(async () => {
     setLoading(true);
@@ -27,9 +28,21 @@ export function DebateReplay({ debateId, onBack }: DebateReplayProps) {
     }
   }, [debateId]);
 
+  const fetchAudioStatus = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/debates/${debateId}/audio-status`);
+      if (!res.ok) return;
+      const job: AudioJob = await res.json();
+      setAudioJob(job);
+    } catch {
+      // ignore
+    }
+  }, [debateId]);
+
   useEffect(() => {
     fetchDetail();
-  }, [fetchDetail]);
+    fetchAudioStatus();
+  }, [fetchDetail, fetchAudioStatus]);
 
   if (loading) {
     return (
@@ -63,6 +76,8 @@ export function DebateReplay({ debateId, onBack }: DebateReplayProps) {
     return agent ? getInitials(agent.persona.name) : "?";
   }
 
+  const hasAudio = audioJob?.status === "completed";
+
   return (
     <div className="container" style={{ maxWidth: 900, margin: "48px auto" }}>
       <button className="btn-primary" onClick={onBack} style={{ marginBottom: 16 }}>
@@ -84,6 +99,30 @@ export function DebateReplay({ debateId, onBack }: DebateReplayProps) {
             <strong>Summary:</strong> {session.summary.total_statements} statements,{" "}
             {session.summary.total_interruptions} interruptions,{" "}
             {session.summary.duration.toFixed(1)}s duration
+          </div>
+        )}
+
+        {/* Audio player */}
+        {hasAudio && (
+          <div style={{ marginBottom: 16, padding: "12px", background: "#161b22", borderRadius: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+              <span style={{ fontSize: "1.1em" }}>🔊</span>
+              <strong>Debate Audio</strong>
+              <a
+                href={`/api/debates/${debateId}/audio`}
+                download={`debate-${debateId}.mp3`}
+                style={{ color: "#58a6ff", textDecoration: "none", fontSize: "0.9em", marginLeft: "auto" }}
+              >
+                ⬇ Download MP3
+              </a>
+            </div>
+            <audio
+              controls
+              src={`/api/debates/${debateId}/audio`}
+              style={{ width: "100%" }}
+            >
+              Your browser does not support the audio element.
+            </audio>
           </div>
         )}
 
