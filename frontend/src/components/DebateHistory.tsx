@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AudioJob, AudioJobStatus, DebateHistoryItem } from "../types";
+import { TruncatedTopic } from "./TruncatedTopic";
 
 interface DebateHistoryProps {
   onSelectDebate: (debateId: string) => void;
@@ -173,7 +174,7 @@ export function DebateHistory({ onSelectDebate, onNewDebate }: DebateHistoryProp
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                    <strong style={{ fontSize: "1.05em" }}>{d.topic}</strong>
+                    <strong style={{ fontSize: "1.05em" }}><TruncatedTopic topic={d.topic} /></strong>
                     <span style={{ color: "#8b949e", fontSize: "0.85em" }}>
                       {d.ended_at ? new Date(d.ended_at * 1000).toLocaleDateString() : ""}
                     </span>

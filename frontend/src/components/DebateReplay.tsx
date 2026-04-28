@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { AudioJob, DebateDetail, DebateTimelineEntry, EmotionalState } from "../types";
 import { EMOTION_LABELS, getInitials } from "../types";
+import { TruncatedTopic } from "./TruncatedTopic";
 
 interface DebateReplayProps {
   debateId: string;
@@ -85,7 +86,7 @@ export function DebateReplay({ debateId, onBack }: DebateReplayProps) {
       </button>
 
       <div className="card" style={{ marginBottom: 24 }}>
-        <h2>{session.topic}</h2>
+        <h2><TruncatedTopic topic={session.topic} /></h2>
         <div style={{ color: "#8b949e", marginBottom: 12 }}>
           {session.agent_theme && <>Theme: {session.agent_theme} · </>}
           {session.agent_count} agents

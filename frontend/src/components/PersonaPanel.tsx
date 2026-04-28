@@ -12,6 +12,7 @@ import {
   getInitials,
   modelOptionToBackendConfig,
 } from "../types";
+import { TruncatedTopic } from "./TruncatedTopic";
 
 interface PersonaPanelProps {
   session: DebateSession;
@@ -39,7 +40,7 @@ export function PersonaPanel({
     <div className="container" style={{ maxWidth: 900, margin: "32px auto" }}>
       <div className="topic-banner">
         <div className="topic-label">Debate Topic</div>
-        <div className="topic-text">{session.config.topic}</div>
+        <div className="topic-text"><TruncatedTopic topic={session.config.topic} /></div>
         {session.config.agent_theme && (
           <div className="topic-theme">
             🎨 Theme: {session.config.agent_theme}

@@ -1,4 +1,5 @@
 import type { DebateSession, DebateStatus, DebateSummary } from "../types";
+import { TruncatedTopic } from "./TruncatedTopic";
 
 interface DebateControlsProps {
   session: DebateSession;
@@ -28,7 +29,7 @@ export function DebateControls({
       <div className="header-left">
         <span className="icon">🎭</span>
         <div>
-          <h1 className="debate-title">{session.config.topic}</h1>
+          <h1 className="debate-title"><TruncatedTopic topic={session.config.topic} /></h1>
           <div className="debate-meta">
             {session.config.agent_theme && (
               <>Theme: {session.config.agent_theme} · </>
